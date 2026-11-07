@@ -1,0 +1,62 @@
+:root {
+  --bg: #f7f5f0; --ink: #1d2a2e; --soft: #5b686c; --line: #e3dfd5; --card: #ffffff;
+  --accent: #0f6b5f; --accent-ink: #ffffff; --warm: #f2b84b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+h1, h2, h3 { line-height: 1.15; margin: 0 0 .5em; letter-spacing: -.02em; }
+h1 { font-size: clamp(2.3rem, 5vw, 3.6rem); }
+h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); }
+h3 { font-size: 1.15rem; }
+p { margin: 0 0 1em; }
+a { color: var(--accent); }
+section { max-width: 1080px; margin: 0 auto; padding: 64px 24px; }
+
+.nav { max-width: 1080px; margin: 0 auto; padding: 20px 24px; display: flex; align-items: center; gap: 28px; }
+.nav nav { display: flex; gap: 22px; margin-left: auto; }
+.nav nav a { color: var(--soft); text-decoration: none; font-size: 15px; }
+.logo { font-weight: 800; font-size: 20px; color: var(--ink); text-decoration: none; }
+.logo::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 8px; border-radius: 4px; background: var(--accent); vertical-align: -1px; }
+
+.btn { display: inline-block; padding: 13px 22px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 650; text-decoration: none; border: 2px solid var(--accent); }
+.btn-ghost { background: transparent; color: var(--accent); }
+.btn-small { padding: 8px 14px; font-size: 15px; }
+
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center; padding-top: 40px; }
+.eyebrow { color: var(--accent); font-weight: 650; font-size: 14px; text-transform: uppercase; letter-spacing: .06em; }
+.lead { font-size: 20px; color: var(--soft); max-width: 30em; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 18px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(29, 42, 46, .08); }
+.col b { display: block; font-size: 13px; color: var(--soft); margin-bottom: 10px; }
+.card { padding: 12px; border-radius: 10px; background: var(--bg); font-size: 14px; margin-bottom: 10px; border: 1px solid var(--line); }
+.card.hot { border-left: 4px solid var(--warm); }
+.card.done { color: var(--soft); text-decoration: line-through; }
+
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 24px; }
+.feature { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+.feature p { color: var(--soft); margin: 0; }
+.tile { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: #e3f0ed; color: var(--accent); font-weight: 750; font-size: 14px; margin-bottom: 14px; }
+
+.steps ol { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 12px; }
+.steps li { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; }
+.steps li b { display: inline-block; min-width: 110px; color: var(--accent); }
+
+.quote { text-align: center; }
+.quote blockquote { margin: 0 auto 12px; max-width: 26em; font-size: 26px; line-height: 1.35; font-weight: 600; }
+.quote p { color: var(--soft); }
+
+.plans { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 24px; }
+.plan { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+.plan-main { border: 2px solid var(--accent); }
+.price { font-size: 34px; font-weight: 800; margin: 0 0 .3em; }
+.price small { font-size: 15px; font-weight: 500; color: var(--soft); }
+
+.foot { max-width: 1080px; margin: 0 auto; padding: 32px 24px 120px; display: flex; justify-content: space-between; color: var(--soft); font-size: 15px; border-top: 1px solid var(--line); }
+
+@media (max-width: 760px) {
+  .nav nav { display: none; }
+  .nav .btn-small { margin-left: auto; }
+  .hero, .grid, .plans { grid-template-columns: 1fr; }
+  section { padding: 44px 16px; }
+  .foot { flex-direction: column; gap: 8px; }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "clickedit",
+  "version": "0.1.0",
+  "description": "Edit your local site in the browser. Your AI coding agent applies the changes in the code.",
+  "keywords": ["visual-editor", "page-editor", "live-edit", "dev-tools", "ai", "coding-agent", "claude-code", "codex", "agents", "proxy", "localhost"],
+  "homepage": "https://github.com/barragain/clickedit#readme",
+  "bugs": "https://github.com/barragain/clickedit/issues",
+  "repository": { "type": "git", "url": "git+https://github.com/barragain/clickedit.git" },
+  "license": "MIT",
+  "author": "barragain",
+  "type": "module",
+  "bin": { "clickedit": "bin/clickedit.mjs" },
+  "files": ["bin/", "src/", "skills/", "AGENTS.md"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test",
+    "demo": "node examples/demo/serve.mjs",
+    "media": "node scripts/record-media.mjs"
+  }
+}
