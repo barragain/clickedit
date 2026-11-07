@@ -33,7 +33,7 @@ if (args.includes('--applied')) {
   try {
     const name = markApplied(out, file?.startsWith('--') ? undefined : file);
     const left = pendingFiles(out).filter((n) => !n.startsWith('publish-')).length;
-    console.log(`${name ? `Saves up to ${name}` : 'All saves'} in ${out} marked as applied.${left ? ` ${left} newer save${left > 1 ? 's are' : ' is'} still waiting: the next --wait prints ${left > 1 ? 'them one by one' : 'it'} at once.` : ''}`);
+    console.log(`${name ? `Saves up to ${name}` : 'All saves'} in ${out} marked as applied.${left ? ` ${left} newer save${left > 1 ? 's are' : ' is'} still waiting: the next --wait or --next prints ${left > 1 ? 'them one by one' : 'it'} at once.` : ''}`);
   } catch (err) { console.error(err.message); process.exit(1); }
 } else if (args.includes('--wait') || args.includes('--next')) {
   mkdirSync(out, { recursive: true });

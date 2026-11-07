@@ -50,7 +50,7 @@ If your agent is not woken when a background command finishes (Codex, for exampl
   - Then check the proxy address answers.
 - Use `clickedit --next` everywhere this skill says `clickedit --wait`, and never leave a `--wait` running.
 - When you give the user the address, tell them to press Save and then say "saved" (or "published") in the chat.
-- When they do, run `clickedit --next`: it prints the oldest save not applied yet and exits. Apply it, run `clickedit --applied`, and run `clickedit --next` again until it says nothing is waiting, so every save is handled.
+- When they do, first check the proxy address still answers; if not, start it again the same way. Then run `clickedit --next`: it prints the oldest save not applied yet and exits. Apply it, run `clickedit --applied`, and run `clickedit --next` again until it says nothing is waiting, so every save is handled.
 - When the user is done, stop the processes you started by their process ids.
 
 ## Publish
