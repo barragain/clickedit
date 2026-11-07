@@ -5,7 +5,7 @@
 **Click your local site to change it. Your AI coding agent makes the same changes in the code.**
 
 ```sh
-npx clickedit --proxy http://localhost:3000
+npx github:barragain/clickedit --proxy http://localhost:3000
 ```
 
 Open the address it prints, click any words and type. Press Save when you are done. Works with Claude Code, Codex and other coding agents, on any framework that runs a local dev server.
@@ -16,11 +16,11 @@ Open the address it prints, click any words and type. Press Save when you are do
 
 Every Save writes a short text file to `.clickedit/` in your project. Your AI reads it and edits the source.
 
-1. You run your dev server and `npx clickedit --proxy <your dev address>`.
-2. Your AI runs `npx clickedit --wait` in the background. It waits for your next Save.
+1. You run your dev server and `npx github:barragain/clickedit --proxy <your dev address>`.
+2. Your AI runs `npx github:barragain/clickedit --wait` in the background. It waits for your next Save.
 3. You edit the page and press Save.
 4. The wait ends and prints the list of changes. Your AI applies each one in the code.
-5. Your AI runs `npx clickedit --applied`. The badge in the page turns green.
+5. Your AI runs `npx github:barragain/clickedit --applied`. The badge in the page turns green.
 6. Your AI starts the wait again, ready for the next round.
 
 A save looks like this:
@@ -113,10 +113,10 @@ MP4 versions of every clip are in [`media/`](media).
 ## Options
 
 ```sh
-npx clickedit --proxy http://localhost:3000   # serve your dev site with the toolbar added
-npx clickedit                                 # save server only, for the script tag
-npx clickedit --wait                          # wait for the next save or publish request, print it, exit
-npx clickedit --applied                       # mark every save as applied
+npx github:barragain/clickedit --proxy http://localhost:3000   # serve your dev site with the toolbar added
+npx github:barragain/clickedit                                 # save server only, for the script tag
+npx github:barragain/clickedit --wait                          # wait for the next save or publish request, print it, exit
+npx github:barragain/clickedit --applied                       # mark every save as applied
 ```
 
 | Option | Default |
@@ -128,7 +128,7 @@ npx clickedit --applied                       # mark every save as applied
 
 ### Script tag instead of the proxy
 
-If you would rather open your dev site directly, run `npx clickedit` and add this tag to your layout, in development only:
+If you would rather open your dev site directly, run `npx github:barragain/clickedit` and add this tag to your layout, in development only:
 
 ```html
 <script src="http://localhost:4399/clickedit.js" defer></script>
