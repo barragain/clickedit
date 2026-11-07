@@ -40,7 +40,18 @@ Quote the path, since it can contain spaces. Below, `clickedit` is short for `no
 3. Run `clickedit --applied`. It marks saves applied up to the one the wait printed, and the badge in the page turns green. If the user saved again while you worked, it says a newer save is still waiting.
 4. Start `clickedit --wait` again in the background. If a save is still waiting, it prints it at once; otherwise it waits for the next one. Keep the loop going until the user says they are done; then stop the proxy and the dev server you started.
 
-If your agent is not woken when a background command finishes (Codex, for example), use `clickedit --next` everywhere this skill says `clickedit --wait`, and never leave a `--wait` running. Tell the user to press Save and then say "saved" (or "published") in the chat. When they do, run `clickedit --next`: it prints the oldest save not applied yet and exits. Apply it, run `clickedit --applied`, and run `clickedit --next` again until it says nothing is waiting, so every save is handled. The proxy and the dev server must keep running between messages, so start them in a way that outlives the command (a background or detached process).
+### Agents without background commands (Codex)
+
+If your agent is not woken when a background command finishes (Codex, for example):
+
+- Start the dev server and the proxy as detached processes, so they keep running after your command and between messages. From the project's folder:
+  - Windows: `Start-Process node -ArgumentList '"<skill folder>/scripts/clickedit.mjs"','--proxy','<dev address>' -WindowStyle Hidden -PassThru` (note the process id it prints).
+  - macOS and Linux: `mkdir -p .clickedit && nohup node "<skill folder>/scripts/clickedit.mjs" --proxy <dev address> > .clickedit/proxy.log 2>&1 &` (note the process id, `$!`).
+  - Then check the proxy address answers.
+- Use `clickedit --next` everywhere this skill says `clickedit --wait`, and never leave a `--wait` running.
+- When you give the user the address, tell them to press Save and then say "saved" (or "published") in the chat.
+- When they do, run `clickedit --next`: it prints the oldest save not applied yet and exits. Apply it, run `clickedit --applied`, and run `clickedit --next` again until it says nothing is waiting, so every save is handled.
+- When the user is done, stop the processes you started by their process ids.
 
 ## Publish
 
