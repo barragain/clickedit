@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // clickedit command line. Run with --help for the options.
 import { createServer } from 'node:http';
-import { mkdirSync, readFileSync, watch, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, statSync, watch, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { handle, markApplied, pendingFiles } from './server.mjs';
 import { createProxy } from './proxy.mjs';
@@ -67,7 +67,34 @@ if (args.includes('--applied')) {
     const pport = Number(opt('--proxy-port', 4300));
     await listen(createProxy(target, out), pport).catch(fail('proxy', pport));
     console.log(`clickedit is on. Open http://localhost:${pport} to edit ${target}. Saves go to ${out}`);
+    const miss = await pageNotFromHere(target).catch(() => null);
+    if (miss) console.log(`WARNING: ${target} does not look like this folder's site: none of its text (${miss}) is in the files under ${process.cwd()}. It may be another project's server on the same port. Start this project's own dev server and run clickedit with --proxy at its address.`);
   } else {
     console.log(`clickedit is on. Add <script src="http://localhost:${port}/clickedit.js" defer></script> to your dev page, or run with --proxy <your dev url>. Saves go to ${out}`);
   }
+}
+
+// Returns a few lines of the page's text when none of them appears in this folder's files, else null.
+// shortcut: plain text search, so a page whose words all come from a CMS or a database also warns; it never blocks.
+async function pageNotFromHere(url) {
+  const html = await (await fetch(url, { signal: AbortSignal.timeout(5000) })).text();
+  const body = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<svg[\s\S]*?<\/svg>/gi, ' ');
+  const bits = [...body.matchAll(/>([^<>]{12,})</g)].map((m) => m[1].replace(/\s+/g, ' ').trim())
+    .filter((t) => t.length >= 12 && /[a-z]{3}/i.test(t) && !/&[a-z#0-9]+;/i.test(t)).slice(0, 12);
+  if (!bits.length) return null;
+  const skip = new Set(['node_modules', '.git', 'dist', 'build', '.astro', '.next', '.nuxt', '.svelte-kit', '.clickedit', '.output', '.agents', '.claude', '.codex']);
+  let files = 0;
+  const found = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (files > 20000) return true; // too big to search: don't warn
+      const p = join(dir, e.name);
+      if (e.isDirectory()) { if (!skip.has(e.name) && found(p)) return true; continue; }
+      files++;
+      if (/\.(png|jpe?g|gif|webp|avif|ico|woff2?|ttf|mp4|zip|pdf)$/i.test(e.name) || statSync(p).size > 2e6) continue;
+      const t = readFileSync(p, 'utf8');
+      if (bits.some((b) => t.includes(b))) return true;
+    }
+    return false;
+  };
+  return found(process.cwd()) ? null : bits.slice(0, 2).map((b) => `"${b.slice(0, 40)}"`).join(', ');
 }
