@@ -101,7 +101,8 @@ export async function handle(req, res, out, path = req.url) {
   // Saves the AI hasn't applied yet: *.md newer than the time in .applied (clickedit --applied writes it).
   if (req.method === 'GET' && path === '/status') {
     const pending = pendingFiles(out).filter((n) => !n.startsWith('publish-')).length;
-    return json(200, { pending, applied: appliedAt(out), pages: pagesSincePublish(out) });
+    // `out` tells an AI whether a clickedit already running belongs to its project.
+    return json(200, { pending, applied: appliedAt(out), out, pages: pagesSincePublish(out) });
   }
   if (req.method === 'POST' && (path === '/save' || path === '/publish')) {
     if (origin && !localOrigin(origin)) return json(403, { ok: false, error: 'only local pages can save' });

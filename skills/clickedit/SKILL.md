@@ -19,9 +19,9 @@ Quote the path, since it can contain spaces. Below, `clickedit` is short for `no
 
 ## Start
 
-1. Find the dev site's address. If a dev server is already running, use its address. If not, read `package.json` (or the project's README or config) for the dev command, start it in the background, and take the address it prints (for example `http://localhost:3000`). Check the address answers before going on. If you cannot tell how the project runs, ask the user for the address.
+1. Find the dev site's address. If a dev server is already running, use its address, but first check it serves this project (its page matches this project's source); another project's server on the same port does not count. If not, read `package.json` (or the project's README or config) for the dev command, start it in the background, and take the address it prints (for example `http://localhost:3000`). Check the address answers before going on. If you cannot tell how the project runs, ask the user for the address.
 2. In the background, run `clickedit --proxy <dev address>` and keep it running. It prints the address the user opens (default `http://localhost:4300`).
-   - If it says a port is in use, clickedit may already be running from earlier: open `http://localhost:4399/clickedit.js`. If it answers, reuse that session. Otherwise pick free ports with `--proxy-port <n>` and `--port <n>`.
+   - If it says a port is in use, clickedit may already be running: open `http://localhost:4399/status`. Reuse that session only if its `out` is this project's `.clickedit` folder. Otherwise it belongs to another project: run with free ports instead, for example `--proxy-port 4302 --port 4398`.
    - If the project already loads `http://localhost:4399/clickedit.js` in dev, run `clickedit` without `--proxy` and the user opens the dev site itself.
 3. Make sure `.clickedit/` is in `.gitignore`.
 4. Tell the user the address to open, and that they click any words to type, right-click to comment, and press Save when done.
@@ -42,6 +42,11 @@ Quote the path, since it can contain spaces. Below, `clickedit` is short for `no
 
 ## Publish
 
-A line starting with `PUBLISH` means the user clicked Publish. Apply anything still pending and run `clickedit --applied`. Then deploy the way this project deploys (commit and push first if that is how it ships). Open the live page to check the changes are there, tell the user what went live, and start `clickedit --wait` again.
+A line starting with `PUBLISH` means the user clicked Publish. The user has already approved it, so go ahead without asking again.
+
+1. Apply anything still pending and run `clickedit --applied`.
+2. Deploy the way this project deploys. Look for it in this order: a deploy script in `package.json` (`deploy`, `release`, `publish`), the project's README or notes, a CI workflow that deploys on push (then commit and push). If you find none, ask the user how the site goes live.
+3. Open the live page to check the changes are there. If the deploy has no live address to check, say so.
+4. Tell the user what went live, then start `clickedit --wait` again.
 
 Never commit `.clickedit/`.
