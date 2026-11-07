@@ -24,6 +24,8 @@ Options:
 const args = process.argv.slice(2);
 const opt = (name, dflt) => { const i = args.indexOf(name); return i >= 0 && args[i + 1] ? args[i + 1] : dflt; };
 if (args.includes('--help') || args.includes('-h')) { process.stdout.write(HELP); process.exit(0); }
+// Saves belong in the project: started from the skill's own folder, they would land where the AI never looks.
+if (!args.includes('--out') && /[\\/]skills[\\/]clickedit([\\/]|$)/.test(process.cwd())) { console.error(`Run clickedit from your project's folder, not from ${process.cwd()} (or pass --out <dir>).`); process.exit(1); }
 const out = resolve(opt('--out', '.clickedit'));
 
 if (args.includes('--applied')) {

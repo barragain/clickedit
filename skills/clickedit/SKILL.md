@@ -40,7 +40,7 @@ Quote the path, since it can contain spaces. Below, `clickedit` is short for `no
 3. Run `clickedit --applied`. It marks saves applied up to the one the wait printed, and the badge in the page turns green. If the user saved again while you worked, it says a newer save is still waiting.
 4. Start `clickedit --wait` again in the background. If a save is still waiting, it prints it at once; otherwise it waits for the next one. Keep the loop going until the user says they are done; then stop the proxy and the dev server you started.
 
-If your agent is not woken when a background command finishes (Codex, for example), tell the user to press Save and then say "saved" (or "published") in the chat. When they do, run `clickedit --next`: it prints the oldest save not applied yet and exits. Apply it, run `clickedit --applied`, and run `clickedit --next` again until it says nothing is waiting, so every save is handled. The proxy and the dev server must keep running between messages, so start them in a way that outlives the command (a background or detached process).
+If your agent is not woken when a background command finishes (Codex, for example), use `clickedit --next` everywhere this skill says `clickedit --wait`, and never leave a `--wait` running. Tell the user to press Save and then say "saved" (or "published") in the chat. When they do, run `clickedit --next`: it prints the oldest save not applied yet and exits. Apply it, run `clickedit --applied`, and run `clickedit --next` again until it says nothing is waiting, so every save is handled. The proxy and the dev server must keep running between messages, so start them in a way that outlives the command (a background or detached process).
 
 ## Publish
 

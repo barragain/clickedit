@@ -44,7 +44,7 @@ Circles and arrows are saved as the elements they cover, so your AI reads them a
 npx skills add barragain/clickedit --copy
 ```
 
-Run it in your project. It installs the clickedit skill, with the tool inside it, for Claude Code, Codex and the other agents you pick. `--copy` gives each agent its own copy, so removing one agent's folder never breaks another. Add `-g` to have it in every project. The installer needs Node 22.20 or newer; clickedit itself runs on Node 18. Then say "open clickedit on my site" or "edit my site with clickedit".
+Run it in your project. It installs the clickedit skill, with the tool inside it, for Claude Code, Codex and the other agents you pick. `--copy` gives each agent its own copy, so removing one agent's folder never breaks another. Add `-g` to have it in every project. The installer needs Node 22.20 or newer; clickedit itself runs on Node 18. Start a new session of your AI so it loads the skill, then say "open clickedit on my site" or "edit my site with clickedit".
 
 Without the installer: run `npx github:barragain/clickedit --proxy <your dev address>` yourself, and give your AI the loop. For Codex and other agents, paste the section in [`AGENTS.md`](AGENTS.md) into your project's `AGENTS.md`.
 
