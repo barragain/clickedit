@@ -180,4 +180,4 @@ The toolbar is one file, [`src/clickedit.js`](src/clickedit.js). The save server
 
 ---
 
-Made by [The Kit Room](https://thekitroom.co), kits your AI runs to do the work for you.
+Made by [Matias Barragan](https://barragan.com.py) from [The Kit Room](https://thekitroom.co), kits your AI runs to do the work for you.
