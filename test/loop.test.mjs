@@ -30,11 +30,13 @@ test('a save made while the AI applies the last one is not skipped', async () =>
     const st = await status();
     assert.equal(st.pending, 1);
     assert.equal(st.pages[0].waiting, 1);
+    assert.match(await run(out, '--next'), /^SAVED .*home-B\.md/); // the look-only form for agents without background waits
     const b = await run(out, '--wait');
     assert.match(b, /^SAVED .*home-B\.md/);
     assert.match(b, /after: {2}"second"/);
     await run(out, '--applied');
     assert.equal((await status()).pending, 0);
+    assert.match(await run(out, '--next'), /^Nothing waiting/);
     await assert.rejects(run(out, '--applied', 'nope.md'), /No save named nope\.md/);
   } finally { server.close(); }
 });

@@ -121,6 +121,7 @@ MP4 versions of every clip are in [`media/`](media).
 npx github:barragain/clickedit --proxy http://localhost:3000   # serve your dev site with the toolbar added
 npx github:barragain/clickedit                                 # save server only, for the script tag
 npx github:barragain/clickedit --wait                          # wait for the next save or publish request, print it, exit
+npx github:barragain/clickedit --next                          # print the oldest save not applied yet, without waiting
 npx github:barragain/clickedit --applied                       # mark saves applied up to the one --wait printed
 ```
 

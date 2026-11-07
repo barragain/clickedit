@@ -11,6 +11,7 @@ const HELP = `clickedit: edit your local site in the browser, your AI applies th
   npx github:barragain/clickedit --proxy http://localhost:3000   open the printed address and edit (nothing to add to your project)
   npx github:barragain/clickedit                                 save server only, for the script tag mode
   npx github:barragain/clickedit --wait                          wait for the next save or publish request, print it, exit (for your AI)
+  npx github:barragain/clickedit --next                          print the oldest save not applied yet, or say nothing is waiting
   npx github:barragain/clickedit --applied [file]                mark saves applied up to the one --wait printed, or up to [file]
 
 Options:
@@ -32,7 +33,7 @@ if (args.includes('--applied')) {
     const left = pendingFiles(out).filter((n) => !n.startsWith('publish-')).length;
     console.log(`${name ? `Saves up to ${name}` : 'All saves'} in ${out} marked as applied.${left ? ` ${left} newer save${left > 1 ? 's are' : ' is'} still waiting: the next --wait prints ${left > 1 ? 'them one by one' : 'it'} at once.` : ''}`);
   } catch (err) { console.error(err.message); process.exit(1); }
-} else if (args.includes('--wait')) {
+} else if (args.includes('--wait') || args.includes('--next')) {
   mkdirSync(out, { recursive: true });
   // Prints the oldest save or publish request not applied yet, so a save made while the AI was busy is never skipped.
   let printed = false;
@@ -47,9 +48,13 @@ if (args.includes('--applied')) {
     return true;
   };
   // The .md is written after the .json, so it marks a finished save. Watch first, then look, so nothing slips between.
-  let timer;
-  watch(out, (_, name) => { if (name?.endsWith('.md')) { clearTimeout(timer); timer = setTimeout(printNext, 150); } });
-  if (!printNext()) console.log(`Waiting for the next save or publish request in ${out}`);
+  // --next only looks, for agents that can't wait in the background.
+  if (args.includes('--next')) { if (!printNext()) console.log(`Nothing waiting in ${out}.`); }
+  else {
+    let timer;
+    watch(out, (_, name) => { if (name?.endsWith('.md')) { clearTimeout(timer); timer = setTimeout(printNext, 150); } });
+    if (!printNext()) console.log(`Waiting for the next save or publish request in ${out}`);
+  }
 } else {
   const port = Number(opt('--port', 4399)), target = opt('--proxy');
   const listen = (server, p) => new Promise((ok, fail) => server.once('error', fail).listen(p, '127.0.0.1', ok));
