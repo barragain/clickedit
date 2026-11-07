@@ -1,11 +1,11 @@
 # clickedit
 
-![Edit a headline, leave a comment, save, and the badge turns green once your AI applies it](media/hero.gif)
+![Retype a word in the headline, comment on the board image, save, and the badge turns green once your AI applies it](media/hero.gif)
 
 **Click your local site to change it. Your AI coding agent makes the same changes in the code.**
 
 ```sh
-npx skills add barragain/clickedit
+npx skills add barragain/clickedit --copy
 ```
 
 Then tell your AI "open clickedit on my site". It starts clickedit and gives you an address. Open it, click any words and type. Press Save when you are done. Works with Claude Code, Codex and other coding agents, on any framework that runs a local dev server.
@@ -32,8 +32,8 @@ Saved 2026-11-07T13:51:07.361Z, viewport 1280x800
 1. TEXT at `section.hero > div.hero-copy > h1` ("Plan the week in ten minutes")
    before: "Plan the week in ten minutes"
    after:  "Plan the week in five minutes"
-2. COMMENT on `section.hero > div.hero-copy > p.lead` ("Harbor puts every task..."): Shorter, please
-3. CIRCLE around `article.plan.plan-main > p.price` ("$6 per person a month"): Show the yearly price too
+2. COMMENT on `section.hero > div.board` ("To do Draft the launch email Book the venue..."): Use a real screenshot of the app here
+3. CIRCLE around `section#pricing > div.plans > article.plan.plan-main` ("Team $6 per person a month..."): Make this card taller so it stands out
 ```
 
 Circles and arrows are saved as the elements they cover, so your AI reads them as text. It never needs to look at a picture.
@@ -41,10 +41,10 @@ Circles and arrows are saved as the elements they cover, so your AI reads them a
 ### Set up your AI
 
 ```sh
-npx skills add barragain/clickedit
+npx skills add barragain/clickedit --copy
 ```
 
-Run it in your project. It installs the clickedit skill, with the tool inside it, for Claude Code, Codex and the other agents you pick. Add `-g` to have it in every project. The installer needs Node 22.20 or newer; clickedit itself runs on Node 18. Then say "open clickedit on my site" or "edit my site with clickedit".
+Run it in your project. It installs the clickedit skill, with the tool inside it, for Claude Code, Codex and the other agents you pick. `--copy` gives each agent its own copy, so removing one agent's folder never breaks another. Add `-g` to have it in every project. The installer needs Node 22.20 or newer; clickedit itself runs on Node 18. Then say "open clickedit on my site" or "edit my site with clickedit".
 
 Without the installer: run `npx github:barragain/clickedit --proxy <your dev address>` yourself, and give your AI the loop. For Codex and other agents, paste the section in [`AGENTS.md`](AGENTS.md) into your project's `AGENTS.md`.
 
@@ -60,19 +60,19 @@ Click any words to type over them. Buttons and links work too. Ctrl+B and Ctrl+I
 
 ## Comment
 
-![Right-click a card, type a comment, and a pin stays on the page](media/comment.gif)
+![Right-click the grid of feature cards, ask for all four in one row, and a pin stays on the page](media/comment.gif)
 
-Right-click anything and write what you want changed. The comment stays on the page as a pin. Click the pin to edit or delete it.
+Comments are for what you can't change by typing: layout, images, spacing, size. Right-click the thing and write what you want, like "put all four cards in one row". The comment stays on the page as a pin. Click the pin to edit or delete it. To change words, just type over them.
 
 ## Draw circles and arrows
 
-![Circle a price with the Draw tool, then drag an arrow from one plan to the other](media/draw.gif)
+![Circle the Team plan and ask for it to stand out, then draw an arrow from the quote to below the plans](media/draw.gif)
 
-Press the pen button, or hold Shift, and drag. A loop becomes "CIRCLE around" the elements inside it. A straight stroke becomes "ARROW from X to Y". Add a note to either one if you like.
+Press the pen button, or hold Shift, and drag. A loop becomes "CIRCLE around" the elements inside it. A straight stroke becomes "ARROW from X to Y". Add a note to either one, like "make this card taller" or "move this quote below the plans".
 
 ## Drag to reorder
 
-![Select the last step of a list and drag it to the top](media/drag.gif)
+![Select the Team plan card and drag it in front of the Free plan](media/drag.gif)
 
 Select a block and drag it among its neighbours. The bar also has buttons to move the selection up or down, remove it, or select the bigger block around it.
 
@@ -84,7 +84,7 @@ Select a block and open the style panel. Change padding, margin, text size, text
 
 ## Phone view
 
-![Open the phone view and edit the headline at phone width](media/phone.gif)
+![Open the phone view and ask for full-width buttons on phones](media/phone.gif)
 
 The phone button shows the page in a 390px frame. Everything works inside it. Saves made there are marked as edits for the mobile layout.
 

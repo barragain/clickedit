@@ -573,6 +573,15 @@
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
     const probes = [[.5, .5], [.25, .5], [.75, .5], [.5, .3], [.5, .7]].map(([fx, fy]) => [x0 + (x1 - x0) * fx, y0 + (y1 - y0) * fy]);
     const els = [...new Set(probes.map(([x, y]) => under(x, y)).filter(Boolean))];
+    // A loop drawn around a whole card or block means that block: when the loop holds most of the elements' common
+    // parent, report the parent, not the bits of text the probes landed on.
+    let up = els[0];
+    while (up && up !== document.body && !els.every((e) => up.contains(e))) up = up.parentElement;
+    if (els.length > 1 && up && up !== document.body) {
+      const r = up.getBoundingClientRect(), [l, t] = [r.left + scrollX, r.top + scrollY];
+      const inside = Math.max(0, Math.min(x1, l + r.width) - Math.max(x0, l)) * Math.max(0, Math.min(y1, t + r.height) - Math.max(y0, t));
+      if (inside >= .7 * r.width * r.height) return [ref(up)];
+    }
     return els.filter((e) => !els.some((o) => o !== e && e.contains(o))).slice(0, 4).map(ref);
   };
   document.addEventListener('pointerdown', (e) => {

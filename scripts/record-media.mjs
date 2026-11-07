@@ -4,7 +4,7 @@
 //   node scripts/record-media.mjs [clip ...]
 import { createRequire } from 'node:module';
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -69,6 +69,12 @@ async function record(name, fn) {
   await sleep(500);
   const check = await CHECKS[name](page);
   const dur = (Date.now() - t0) / 1000 - start;
+  if (process.env.SHOW_SAVES && name !== 'publish') {
+    const before = new Set((existsSync(out) ? readdirSync(out) : []).filter((n) => n.endsWith('.md') && name !== 'hero'));
+    if (name !== 'hero') await page.locator('[data-act=save]:visible').first().click({ timeout: 5000 }).catch((e) => console.log('save click failed: ' + e.message.split('\n')[0]));
+    await sleep(1500);
+    for (const n of (existsSync(out) ? readdirSync(out) : []).filter((n) => n.endsWith('.md') && !before.has(n))) console.log(`--- ${name} saved:\n` + readFileSync(join(out, n), 'utf8'));
+  }
   const video = await page.video().path();
   await ctx.close();
   return { name, video, start, dur, check };
@@ -82,8 +88,10 @@ const CLIPS = {
     const w = await word(h1, 'ten');
     await move(w.x, w.y, 10); await page.mouse.dblclick(w.x, w.y);
     await type('five '); await away();
-    await click(page.locator('.lead'), { button: 'right' });
-    await type('Shorter, please'); await pause(200);
+    // Right-click the board's own padding, so the comment is on the board and not on one of its cards.
+    const bd = await page.locator('.board').boundingBox();
+    await click(page.locator('.board'), { button: 'right' }, -bd.width / 2 + 8, -bd.height / 2 + 8);
+    await type('Use a real screenshot of the app here'); await pause(200);
     await click(page.locator('#ce-note [data-n=ok]'));
     await click(page.locator('[data-act=save]'));
     await page.waitForFunction(() => /waiting/.test(document.querySelector('.ce-badge')?.textContent ?? ''));
@@ -104,41 +112,44 @@ const CLIPS = {
   },
   async comment({ page, click, type, scrollTo, at }) {
     await scrollTo('#features');
-    await click(page.locator('.feature').nth(2).locator('p'), { button: 'right' });
-    await pause(300); await type('Say what time the recap arrives'); await pause(300);
+    await click(page.locator('.features .grid'), { button: 'right' }, 0, 0);
+    await pause(300); await type('Put all four cards in one row'); await pause(300);
     await click(page.locator('#ce-note [data-n=ok]'));
     await pause(500); await at(page.locator('.ce-pin').first()); await pause(900);
   },
-  async draw({ page, click, type, scrollTo, move }) {
-    await scrollTo('#pricing');
+  async draw({ page, click, type, move }) {
+    // The quote and both plans on screen together: the arrow goes from one to the other.
+    await page.evaluate(() => scrollTo({ top: document.querySelector('.quote').offsetTop - 40, behavior: 'smooth' })); await sleep(900);
     await click(page.locator('[data-tool=draw]'));
-    const p = (await page.locator('.plan-main .price').boundingBox());
-    const cx = p.x + 70, cy = p.y + p.height / 2, rx = 120, ry = 46;
+    const c = await page.locator('.plan-main').boundingBox();
+    const cx = c.x + c.width / 2, cy = c.y + c.height / 2, rx = c.width / 2 + 10, ry = c.height / 2 + 26;
+    if (c.y + c.height + 26 > H - 70) throw new Error('the Team plan is not fully on screen for the circle');
     await move(cx + rx, cy);
     await page.mouse.down();
     for (let a = 0; a <= Math.PI * 2.1; a += 0.12) await page.mouse.move(cx + rx * Math.cos(a), cy + ry * Math.sin(a), { steps: 2 });
     await page.mouse.up();
-    await pause(300); await type('Show the yearly price too'); await pause(200);
+    await pause(300); await type('Make this card taller so it stands out'); await pause(200);
     await click(page.locator('#ce-note [data-n=ok]'));
-    const a = await page.locator('.plan').first().locator('.btn').boundingBox();
-    const b = await page.locator('.plan-main h3').boundingBox();
-    await move(a.x + a.width / 2, a.y + a.height / 2);
+    const q = await page.locator('.quote blockquote').boundingBox(), plans = await page.locator('.plans').boundingBox();
+    if (q.y < 0) throw new Error('the quote is off screen for the arrow');
+    await move(q.x + q.width / 2, q.y + q.height / 2);
     await page.mouse.down();
-    await move(b.x + 20, b.y + b.height / 2, 30);
+    await move(plans.x + plans.width / 2, plans.y + plans.height + 18, 30);
     await page.mouse.up();
-    await pause(300); await type('Point people to Team'); await pause(200);
+    await pause(300); await type('Move this quote below the plans'); await pause(200);
     await click(page.locator('#ce-note [data-n=ok]'));
     await pause(600);
   },
   async drag({ page, click, scrollTo, move }) {
-    await scrollTo('#how');
-    const friday = page.locator('.steps li').nth(2);
-    await click(friday, {}, 120, 0);
-    await page.keyboard.press('Escape'); await pause(400);
-    const f = await friday.boundingBox(), m = await page.locator('.steps li').first().boundingBox();
-    await move(f.x + f.width / 2, f.y + f.height / 2, 8);
+    await scrollTo('#pricing');
+    const team = page.locator('.plan-main');
+    // Select the card itself by clicking its padding, not its words.
+    const t = await team.boundingBox(), f = await page.locator('.plan').first().boundingBox();
+    await move(t.x + t.width - 16, t.y + 14); await page.mouse.click(t.x + t.width - 16, t.y + 14);
+    await pause(400);
+    await move(t.x + t.width / 2, t.y + t.height / 2, 8);
     await page.mouse.down();
-    await move(f.x + f.width / 2, m.y + 4, 40);
+    await move(f.x + 20, t.y + t.height / 2, 40);
     await page.mouse.up();
     await pause(900);
   },
@@ -160,14 +171,18 @@ const CLIPS = {
     await page.keyboard.press('Control+A'); await type('19');
     await pause(900);
   },
-  async phone({ page, click, type, move, away }) {
+  async phone({ page, click, type, move }) {
     await click(page.locator('[data-act=phone]'));
     await pause(1200);
     const f = page.frameLocator('#ce-phone iframe');
-    const h1 = f.locator('h1');
-    await h1.waitFor();
-    await click(h1, {}, 0, 0);
-    await page.keyboard.press('End'); await type(', on your phone');
+    const actions = f.locator('.hero .actions');
+    await actions.waitFor();
+    // Right-click the gap between the two buttons, so the comment is on the pair and not on one button.
+    const [b1, b2] = [await actions.locator('.btn').nth(0).boundingBox(), await actions.locator('.btn').nth(1).boundingBox()];
+    const gx = b2.x > b1.x + b1.width ? (b1.x + b1.width + b2.x) / 2 : b1.x + 12, gy = b2.x > b1.x + b1.width ? b1.y + b1.height / 2 : (b1.y + b1.height + b2.y) / 2;
+    await move(gx, gy); await sleep(120); await page.mouse.click(gx, gy, { button: 'right' });
+    await pause(300); await type('Make these buttons full width on phones'); await pause(300);
+    await click(f.locator('#ce-note [data-n=ok]'));
     await move(40, 300); await pause(900);
   },
   async publish({ page, click, word, type, move, away }) {
@@ -194,9 +209,9 @@ const CHECKS = {
   'edit-text': async (p) => (await txt(p, 'h1')).includes('in five minutes') && (await txt(p, '.hero .btn')) === 'Try Harbor free',
   comment: async (p) => (await p.locator('.ce-pin').count()) === 1,
   draw: async (p) => (await txt(p, '.ce-count')) === '2',
-  drag: async (p) => (await txt(p, '.steps li')).startsWith('Friday') && (await txt(p, '.ce-count')) === '1',
+  drag: async (p) => (await txt(p, '.plans .plan')).startsWith('Team') && (await txt(p, '.ce-count')) === '1',
   style: async (p) => (await p.locator('.feature').first().evaluate((e) => e.style.paddingBlock + ' ' + e.style.fontSize)) !== ' ',
-  phone: async (p) => (await p.frameLocator('#ce-phone iframe').locator('h1').innerText()).includes('on your phone'),
+  phone: async (p) => (await p.frameLocator('#ce-phone iframe').locator('.ce-pin').count()) === 1,
   publish: async (p) => !readdirSync(out).some((n) => n.startsWith('publish-')) && (await p.locator('#ce-note').count()) === 0,
 };
 
