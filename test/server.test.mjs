@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { localOrigin, publishText, summary } from '../src/server.mjs';
+import { localOrigin, publishText, summary } from '../skills/clickedit/scripts/server.mjs';
 
 test('summary writes one readable line per change', () => {
   const md = summary({

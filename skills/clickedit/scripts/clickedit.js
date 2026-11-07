@@ -663,7 +663,7 @@
       if (others.length) { ss((s) => s.setItem('ce-saved', '1')); poll(); }
     }
     const st = await serverState();
-    if (!st) return say('clickedit is not running. Ask your AI to run npx clickedit.');
+    if (!st) return say('clickedit is not running. Ask your AI to open clickedit.');
     const pages = st.pages ?? [], waiting = pages.reduce((n, p) => n + p.waiting, 0) || st.pending;
     const list = pages.length ? `${plural(pages.length, 'page')} with saves (${pages.map((p) => new URL(p.url).pathname).join(', ')})` : 'this page';
     const q = waiting ? `Publish ${list}? Your AI has not applied ${plural(waiting, 'save')} yet; it applies them first, then deploys.` : `Publish ${list} live? Your AI deploys and checks the live pages.`;
@@ -691,7 +691,7 @@
       ss((s) => s.setItem('ce-saved', '1'));
       say(`Saved ${doc.changes.length}. Your AI has them.`);
       poll();
-    } catch (err) { say(`Not saved: ${err.message}. Ask your AI to run npx clickedit.`); }
+    } catch (err) { say(`Not saved: ${err.message}. Ask your AI to open clickedit.`); }
   };
   const post = async (doc) => {
     const j = await (await fetch(SERVER + '/save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(doc) })).json();

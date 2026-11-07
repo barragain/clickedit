@@ -3,8 +3,8 @@
 import { createServer } from 'node:http';
 import { mkdirSync, readFileSync, watch } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { handle, markApplied } from '../src/server.mjs';
-import { createProxy } from '../src/proxy.mjs';
+import { handle, markApplied } from './server.mjs';
+import { createProxy } from './proxy.mjs';
 
 const HELP = `clickedit: edit your local site in the browser, your AI applies the changes in the code.
 

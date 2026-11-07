@@ -9,8 +9,8 @@
   "license": "MIT",
   "author": "barragain",
   "type": "module",
-  "bin": { "clickedit": "bin/clickedit.mjs" },
-  "files": ["bin/", "src/", "skills/", "AGENTS.md"],
+  "bin": { "clickedit": "skills/clickedit/scripts/clickedit.mjs" },
+  "files": ["skills/", "AGENTS.md"],
   "engines": { "node": ">=18" },
   "scripts": {
     "test": "node --test",

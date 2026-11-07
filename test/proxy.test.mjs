@@ -5,7 +5,7 @@ import { mkdtempSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
-import { createProxy, inject, TAG } from '../src/proxy.mjs';
+import { createProxy, inject, TAG } from '../skills/clickedit/scripts/proxy.mjs';
 
 test('inject puts the tag before the last </body>', () => {
   assert.equal(inject('<html><body><p>x</p></BODY></html>'), `<html><body><p>x</p>${TAG}</BODY></html>`);

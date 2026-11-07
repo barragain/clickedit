@@ -14,7 +14,7 @@ const { chromium } = createRequire(process.env.PLAYWRIGHT_FROM || join(root, 'pa
 const media = join(root, 'media'), raw = mkdtempSync(join(tmpdir(), 'clickedit-rec-')), out = join(raw, 'saves');
 const W = 1280, H = 800, DEMO = 3010, PROXY = 4310, SAVE = 4311;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const bin = join(root, 'bin', 'clickedit.mjs');
+const bin = join(root, 'skills', 'clickedit', 'scripts', 'clickedit.mjs');
 
 const kids = [
   spawn(process.execPath, [join(root, 'examples/demo/serve.mjs')], { env: { ...process.env, PORT: String(DEMO) } }),

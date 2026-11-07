@@ -29,7 +29,7 @@ export function publishText(url, at, pages) {
   const list = pages.length
     ? pages.map((p) => `- ${p.url}: ${p.saves} save${p.saves > 1 ? 's' : ''}, ${p.changes} change${p.changes > 1 ? 's' : ''}, ${p.waiting ? `${p.waiting} not applied yet` : 'all applied'} (${p.files.join(', ')})`).join('\n')
     : `- none (no saves since the last publish; publish ${url} as it is)`;
-  return `# PUBLISH REQUEST\nClicked on: ${url}\nAsked: ${at}\nPages with saves since the last publish:\n${list}\nThe user clicked Publish in clickedit. Apply any pending saves first (the user already approved them), run npx clickedit --applied, then deploy the way this project deploys and check each live page. Report back.\n`;
+  return `# PUBLISH REQUEST\nClicked on: ${url}\nAsked: ${at}\nPages with saves since the last publish:\n${list}\nThe user clicked Publish in clickedit. Apply any pending saves first (the user already approved them), mark them applied with clickedit --applied, then deploy the way this project deploys and check each live page. Report back.\n`;
 }
 
 const cut = (s, n = 90) => (s ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
