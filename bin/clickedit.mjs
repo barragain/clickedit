@@ -8,10 +8,10 @@ import { createProxy } from '../src/proxy.mjs';
 
 const HELP = `clickedit: edit your local site in the browser, your AI applies the changes in the code.
 
-  npx clickedit --proxy http://localhost:3000   open the printed address and edit (nothing to add to your project)
-  npx clickedit                                 save server only, for the script tag mode
-  npx clickedit --wait                          wait for the next save or publish request, print it, exit (for your AI)
-  npx clickedit --applied                       mark every save as applied (the badge in the page turns green)
+  npx github:barragain/clickedit --proxy http://localhost:3000   open the printed address and edit (nothing to add to your project)
+  npx github:barragain/clickedit                                 save server only, for the script tag mode
+  npx github:barragain/clickedit --wait                          wait for the next save or publish request, print it, exit (for your AI)
+  npx github:barragain/clickedit --applied                       mark every save as applied (the badge in the page turns green)
 
 Options:
   --proxy <url>       your dev site; serves it with the toolbar added
