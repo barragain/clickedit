@@ -5,10 +5,10 @@
 **Click your local site to change it. Your AI coding agent makes the same changes in the code.**
 
 ```sh
-npx github:barragain/clickedit --proxy http://localhost:3000
+npx skills add barragain/clickedit
 ```
 
-Open the address it prints, click any words and type. Press Save when you are done. Works with Claude Code, Codex and other coding agents, on any framework that runs a local dev server.
+Then tell your AI "open clickedit on my site". It starts clickedit and gives you an address. Open it, click any words and type. Press Save when you are done. Works with Claude Code, Codex and other coding agents, on any framework that runs a local dev server.
 
 ---
 
@@ -16,11 +16,11 @@ Open the address it prints, click any words and type. Press Save when you are do
 
 Every Save writes a short text file to `.clickedit/` in your project. Your AI reads it and edits the source.
 
-1. You run your dev server and `npx github:barragain/clickedit --proxy <your dev address>`.
-2. Your AI runs `npx github:barragain/clickedit --wait` in the background. It waits for your next Save.
+1. Your AI starts your dev server and clickedit, and tells you the address to open.
+2. Your AI runs clickedit's wait in the background. It waits for your next Save.
 3. You edit the page and press Save.
 4. The wait ends and prints the list of changes. Your AI applies each one in the code.
-5. Your AI runs `npx github:barragain/clickedit --applied`. The badge in the page turns green.
+5. Your AI marks the save applied. The badge in the page turns green.
 6. Your AI starts the wait again, ready for the next round.
 
 A save looks like this:
@@ -40,8 +40,13 @@ Circles and arrows are saved as the elements they cover, so your AI reads them a
 
 ### Set up your AI
 
-- **Claude Code:** copy [`skills/clickedit/SKILL.md`](skills/clickedit/SKILL.md) to `.claude/skills/clickedit/SKILL.md` in your project (or `~/.claude/skills/` for every project). Then say "open clickedit".
-- **Codex and other agents:** paste the section in [`AGENTS.md`](AGENTS.md) into your project's `AGENTS.md`.
+```sh
+npx skills add barragain/clickedit
+```
+
+Run it in your project. It installs the clickedit skill, with the tool inside it, for Claude Code, Codex and the other agents you pick. Add `-g` to have it in every project. The installer needs Node 22.20 or newer; clickedit itself runs on Node 18. Then say "open clickedit on my site" or "edit my site with clickedit".
+
+Without the installer: run `npx github:barragain/clickedit --proxy <your dev address>` yourself, and give your AI the loop. For Codex and other agents, paste the section in [`AGENTS.md`](AGENTS.md) into your project's `AGENTS.md`.
 
 Add `.clickedit/` to your `.gitignore`. Saves are notes for your AI, not code.
 
@@ -169,10 +174,10 @@ git clone https://github.com/barragain/clickedit
 cd clickedit
 npm test                                         # node:test, no install needed
 npm run demo                                     # demo site on http://localhost:3000
-node bin/clickedit.mjs --proxy http://localhost:3000
+node skills/clickedit/scripts/clickedit.mjs --proxy http://localhost:3000
 ```
 
-The toolbar is one file, [`src/clickedit.js`](src/clickedit.js). The save server is [`src/server.mjs`](src/server.mjs) and the proxy is [`src/proxy.mjs`](src/proxy.mjs). `npm run media` records the clips in this README. It needs Playwright and ffmpeg, which are not dependencies.
+The skill is [`skills/clickedit/SKILL.md`](skills/clickedit/SKILL.md) and the tool lives next to it in `scripts/`. The toolbar is one file, [`clickedit.js`](skills/clickedit/scripts/clickedit.js). The save server is [`server.mjs`](skills/clickedit/scripts/server.mjs) and the proxy is [`proxy.mjs`](skills/clickedit/scripts/proxy.mjs). `npm run media` records the clips in this README. It needs Playwright and ffmpeg, which are not dependencies.
 
 ## License
 
