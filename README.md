@@ -161,6 +161,12 @@ No. clickedit only writes to `.clickedit/`. Your AI makes the code changes, so y
 **My dev site runs on a custom hostname.**
 Use the proxy. The page then loads from `localhost`, which clickedit accepts.
 
+**Do I have to tell my AI when I save?**
+In Claude Code, no: it picks up each save as you press Save. Codex is not woken by background commands, so after saving, say "saved" in the Codex chat.
+
+**clickedit shows another project's page.**
+Another site was already running on that port. clickedit warns when the page's text is not in your project's files, and your AI then starts your own dev server and opens clickedit on it. Saves made on another project's page are never applied.
+
 **Does it need any packages?**
 No. It runs on Node 18 or newer with no dependencies.
 
