@@ -37,8 +37,8 @@ Quote the path, since it can contain spaces. Below, `clickedit` is short for `no
    - `REMOVE`, `MOVE`, `STYLE`: remove the block, move it, or set the CSS value shown.
    - The path in backticks (tags, classes, ids) and the quoted words find the element in the source. The URL is the page as the user saw it; with the proxy it shows the proxy's port, the path is the same.
    - A save made in phone view is for the mobile layout: change the mobile styles only.
-3. Run `clickedit --applied`. The badge in the page turns green.
-4. Start `clickedit --wait` again in the background. Keep the loop going until the user says they are done; then stop the proxy and the dev server you started.
+3. Run `clickedit --applied`. It marks saves applied up to the one the wait printed, and the badge in the page turns green. If the user saved again while you worked, it says a newer save is still waiting.
+4. Start `clickedit --wait` again in the background. If a save is still waiting, it prints it at once; otherwise it waits for the next one. Keep the loop going until the user says they are done; then stop the proxy and the dev server you started.
 
 ## Publish
 

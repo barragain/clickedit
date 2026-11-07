@@ -121,7 +121,7 @@ MP4 versions of every clip are in [`media/`](media).
 npx github:barragain/clickedit --proxy http://localhost:3000   # serve your dev site with the toolbar added
 npx github:barragain/clickedit                                 # save server only, for the script tag
 npx github:barragain/clickedit --wait                          # wait for the next save or publish request, print it, exit
-npx github:barragain/clickedit --applied                       # mark every save as applied
+npx github:barragain/clickedit --applied                       # mark saves applied up to the one --wait printed
 ```
 
 | Option | Default |
@@ -185,4 +185,4 @@ The skill is [`skills/clickedit/SKILL.md`](skills/clickedit/SKILL.md) and the to
 
 ---
 
-Made by [Matias Barragan](https://barragan.com.py) from [The Kit Room](https://thekitroom.co), kits your AI runs to do the work for you.
+Made by [Matias Barragan](https://barragan.com.py) from [The Kit Room](https://thekitroom.co).

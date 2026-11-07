@@ -1,17 +1,32 @@
 // The save server: serves the toolbar, writes each save as <page>-<time>.json plus a readable .md for the AI,
 // reports which saves the AI has applied, and records publish requests. Everything stays on this computer.
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const TOOLBAR = join(here, 'clickedit.js');
 const mtime = (out, n) => (existsSync(join(out, n)) ? statSync(join(out, n)).mtimeMs : 0);
 
+// The time of the newest save the AI has applied. .applied holds that save's file time, so a save made while
+// the AI was still applying stays newer and keeps waiting. Older .applied files hold a date: use their own time.
+export function appliedAt(out) {
+  if (!existsSync(join(out, '.applied'))) return 0;
+  const t = Number(readFileSync(join(out, '.applied'), 'utf8').trim());
+  return Number.isFinite(t) ? t : mtime(out, '.applied');
+}
+
+// Saves and publish requests the AI has not handled yet, oldest first.
+export function pendingFiles(out) {
+  mkdirSync(out, { recursive: true });
+  const done = appliedAt(out);
+  return readdirSync(out).filter((n) => n.endsWith('.md') && mtime(out, n) > done).sort((a, b) => mtime(out, a) - mtime(out, b));
+}
+
 // Every page with saves since the last Publish (the newest publish-*.md marks it), and how many the AI hasn't applied.
 export function pagesSincePublish(out) {
   mkdirSync(out, { recursive: true });
-  const names = readdirSync(out), done = mtime(out, '.applied');
+  const names = readdirSync(out), done = appliedAt(out);
   const last = Math.max(0, ...names.filter((n) => n.startsWith('publish-')).map((n) => mtime(out, n)));
   const by = {};
   for (const n of names.filter((x) => x.endsWith('.json') && mtime(out, x) > last)) {
@@ -52,7 +67,15 @@ export function summary(doc) {
   return lines.join('\n') + '\n';
 }
 
-export const markApplied = (out) => { mkdirSync(out, { recursive: true }); writeFileSync(join(out, '.applied'), new Date().toISOString() + '\n'); };
+// Marks every save up to `file` as applied (default: the one --wait printed last, else the newest). Returns its name.
+export function markApplied(out, file) {
+  mkdirSync(out, { recursive: true });
+  const last = existsSync(join(out, '.last-printed')) ? readFileSync(join(out, '.last-printed'), 'utf8').trim() : '';
+  const name = file ? basename(file) : last || readdirSync(out).filter((n) => n.endsWith('.md')).sort((a, b) => mtime(out, b) - mtime(out, a))[0];
+  if (name && !existsSync(join(out, name))) throw new Error(`No save named ${name} in ${out}`);
+  writeFileSync(join(out, '.applied'), `${Math.max(appliedAt(out), name ? mtime(out, name) : 0)}\n`);
+  return name;
+}
 
 // Only pages on this computer may save: any website you visit could otherwise post text for your AI to act on.
 export const localOrigin = (o) => { try { return /^(localhost|127(\.\d+){3}|\[::1\]|.+\.localhost)$/.test(new URL(o).hostname); } catch { return false; } };
@@ -75,12 +98,10 @@ export async function handle(req, res, out, path = req.url) {
     res.setHeader('cache-control', 'no-store');
     return res.end(readFileSync(TOOLBAR));
   }
-  // Saves the AI hasn't applied yet: *.md newer than .applied (npx clickedit --applied touches it).
+  // Saves the AI hasn't applied yet: *.md newer than the time in .applied (clickedit --applied writes it).
   if (req.method === 'GET' && path === '/status') {
-    mkdirSync(out, { recursive: true });
-    const done = mtime(out, '.applied');
-    const pending = readdirSync(out).filter((n) => n.endsWith('.md') && !n.startsWith('publish-') && mtime(out, n) > done).length;
-    return json(200, { pending, applied: done, pages: pagesSincePublish(out) });
+    const pending = pendingFiles(out).filter((n) => !n.startsWith('publish-')).length;
+    return json(200, { pending, applied: appliedAt(out), pages: pagesSincePublish(out) });
   }
   if (req.method === 'POST' && (path === '/save' || path === '/publish')) {
     if (origin && !localOrigin(origin)) return json(403, { ok: false, error: 'only local pages can save' });

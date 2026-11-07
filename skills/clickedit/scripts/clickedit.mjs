@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // clickedit command line. Run with --help for the options.
 import { createServer } from 'node:http';
-import { mkdirSync, readFileSync, watch } from 'node:fs';
+import { mkdirSync, readFileSync, watch, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { handle, markApplied } from './server.mjs';
+import { handle, markApplied, pendingFiles } from './server.mjs';
 import { createProxy } from './proxy.mjs';
 
 const HELP = `clickedit: edit your local site in the browser, your AI applies the changes in the code.
@@ -11,7 +11,7 @@ const HELP = `clickedit: edit your local site in the browser, your AI applies th
   npx github:barragain/clickedit --proxy http://localhost:3000   open the printed address and edit (nothing to add to your project)
   npx github:barragain/clickedit                                 save server only, for the script tag mode
   npx github:barragain/clickedit --wait                          wait for the next save or publish request, print it, exit (for your AI)
-  npx github:barragain/clickedit --applied                       mark every save as applied (the badge in the page turns green)
+  npx github:barragain/clickedit --applied [file]                mark saves applied up to the one --wait printed, or up to [file]
 
 Options:
   --proxy <url>       your dev site; serves it with the toolbar added
@@ -26,21 +26,30 @@ if (args.includes('--help') || args.includes('-h')) { process.stdout.write(HELP)
 const out = resolve(opt('--out', '.clickedit'));
 
 if (args.includes('--applied')) {
-  markApplied(out);
-  console.log(`All saves in ${out} marked as applied.`);
+  const file = opt('--applied');
+  try {
+    const name = markApplied(out, file?.startsWith('--') ? undefined : file);
+    const left = pendingFiles(out).filter((n) => !n.startsWith('publish-')).length;
+    console.log(`${name ? `Saves up to ${name}` : 'All saves'} in ${out} marked as applied.${left ? ` ${left} newer save${left > 1 ? 's are' : ' is'} still waiting: the next --wait prints ${left > 1 ? 'them one by one' : 'it'} at once.` : ''}`);
+  } catch (err) { console.error(err.message); process.exit(1); }
 } else if (args.includes('--wait')) {
   mkdirSync(out, { recursive: true });
-  console.log(`Waiting for the next save or publish request in ${out}`);
-  // The .md is written after the .json, so it marks a finished save.
-  watch(out, (_, name) => {
-    if (!name?.endsWith('.md')) return;
-    setTimeout(() => {
-      const file = join(out, name);
-      console.log(`${name.startsWith('publish-') ? 'PUBLISH' : 'SAVED'} ${file}\n`);
-      console.log(readFileSync(file, 'utf8'));
-      process.exit(0);
-    }, 150);
-  });
+  // Prints the oldest save or publish request not applied yet, so a save made while the AI was busy is never skipped.
+  let printed = false;
+  const printNext = () => {
+    const name = !printed && pendingFiles(out)[0];
+    if (!name) return false;
+    printed = true;
+    writeFileSync(join(out, '.last-printed'), name + '\n');
+    const head = `${name.startsWith('publish-') ? 'PUBLISH' : 'SAVED'} ${join(out, name)}\n\n`;
+    // Exit once the text is out: on some systems a pipe is still writing when the process ends.
+    process.stdout.write(head + readFileSync(join(out, name), 'utf8') + '\n', () => process.exit(0));
+    return true;
+  };
+  // The .md is written after the .json, so it marks a finished save. Watch first, then look, so nothing slips between.
+  let timer;
+  watch(out, (_, name) => { if (name?.endsWith('.md')) { clearTimeout(timer); timer = setTimeout(printNext, 150); } });
+  if (!printNext()) console.log(`Waiting for the next save or publish request in ${out}`);
 } else {
   const port = Number(opt('--port', 4399)), target = opt('--proxy');
   const listen = (server, p) => new Promise((ok, fail) => server.once('error', fail).listen(p, '127.0.0.1', ok));
