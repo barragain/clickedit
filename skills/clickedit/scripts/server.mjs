@@ -102,7 +102,14 @@ export async function handle(req, res, out, path = req.url) {
   if (req.method === 'GET' && path === '/status') {
     const pending = pendingFiles(out).filter((n) => !n.startsWith('publish-')).length;
     // `out` tells an AI whether a clickedit already running belongs to its project.
-    return json(200, { pending, applied: appliedAt(out), out, pages: pagesSincePublish(out) });
+    // Applying: --wait handed a save to the AI (.last-printed) and --applied hasn't marked it yet.
+    // Publishing: a Publish click the AI hasn't finished (it runs --applied on it after checking the live page).
+    // Unpublished: saves since the last Publish, applied on the preview but not live yet.
+    const done = appliedAt(out), last = existsSync(join(out, '.last-printed')) ? readFileSync(join(out, '.last-printed'), 'utf8').trim() : '';
+    const applying = Boolean(pending && last && mtime(out, last) > done);
+    const publishing = pendingFiles(out).some((n) => n.startsWith('publish-'));
+    const pages = pagesSincePublish(out);
+    return json(200, { pending, applying, publishing, unpublished: pages.length > 0, applied: done, out, pages });
   }
   if (req.method === 'POST' && (path === '/save' || path === '/publish')) {
     if (origin && !localOrigin(origin)) return json(403, { ok: false, error: 'only local pages can save' });

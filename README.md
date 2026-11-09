@@ -20,7 +20,8 @@ Every Save writes a short text file to `.clickedit/` in your project. Your AI re
 2. Your AI runs clickedit's wait in the background. It waits for your next Save.
 3. You edit the page and press Save.
 4. The wait ends and prints the list of changes. Your AI applies each one in the code.
-5. Your AI marks the save applied. The badge in the page turns green.
+5. Your AI marks the save applied. The status above the bar goes from "1 waiting for your AI" to "Your AI is applying..." to "All applied, waiting to go live".
+   After you press Publish it shows "Going live...", then "Live on the site" once your AI has checked the live page.
 6. Your AI starts the wait again, ready for the next round.
 
 A save looks like this:
@@ -74,7 +75,7 @@ Press the pen button, or hold Shift, and drag. A loop becomes "CIRCLE around" th
 
 ![Select the Team plan card and drag it in front of the Free plan](media/drag.gif)
 
-Select a block and drag it among its neighbours. The bar also has buttons to move the selection up or down, remove it, or select the bigger block around it.
+Press any block and drag it among its neighbours. While you type in a block, drag its outline instead, so dragging inside the words still selects them. The bar also has buttons to move the selection up or down, remove it, or select the bigger block around it.
 
 ## Style tweaks
 
@@ -110,7 +111,8 @@ MP4 versions of every clip are in [`media/`](media).
 | Ctrl+click (Cmd+click on Mac) | Use the button or link like a visitor |
 | Right-click | Select and comment |
 | Shift+drag | Draw a circle or an arrow |
-| Drag a selected block | Move it among its neighbours |
+| Press and drag a block | Move it among its neighbours |
+| Delete or Backspace | Remove the selected block (while typing, it deletes letters as usual) |
 | Ctrl+B, Ctrl+I | Bold, italic, while typing |
 | Ctrl+Enter | Add the comment you are typing |
 | Esc | Stop typing, then clear the selection, then turn off a tool, then pause |

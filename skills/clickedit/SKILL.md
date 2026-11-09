@@ -57,9 +57,9 @@ If your agent is not woken when a background command finishes (Codex, for exampl
 
 A line starting with `PUBLISH` means the user clicked Publish. The user has already approved it, so go ahead without asking again.
 
-1. Apply anything still pending and run `clickedit --applied`.
+1. Apply anything still pending, marking each save with `clickedit --applied <its file>`. Don't mark the publish request yet: the page shows "Going live..." until you do.
 2. Deploy the way this project deploys. Look for it in this order: a deploy script in `package.json` (`deploy`, `release`, `publish`), the project's README or notes, a CI workflow that deploys on push (then commit and push). If you find none, ask the user how the site goes live.
-3. Open the live page to check the changes are there. If the deploy has no live address to check, say so.
+3. Open the live page to check the changes are there, then run `clickedit --applied` (it marks the publish request, and the page shows "Live on the site"). If the deploy has no live address to check, say so.
 4. Tell the user what went live, then start `clickedit --wait` again.
 
 Never commit `.clickedit/`.

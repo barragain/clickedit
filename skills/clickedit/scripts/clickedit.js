@@ -133,10 +133,21 @@
   #ce-edit{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2147483646;display:flex;gap:6px;align-items:center;padding:6px 6px 6px 12px;border-radius:14px;background:${T.s};color:${T.fg};font:600 13px/1.2 var(--ce-font);box-shadow:0 8px 30px rgba(0,0,0,.3);max-width:calc(100vw - 16px);flex-wrap:nowrap;white-space:nowrap}
   #ce-edit button,#ce-note button{all:unset;cursor:pointer;border-radius:9px;background:${T.r};color:${T.fg};font:600 13px var(--ce-font)}
   #ce-edit button{display:inline-grid;place-items:center;width:34px;height:34px;position:relative}
-  #ce-edit .ce-badge{position:relative;padding:4px 8px;border-radius:999px;background:${T.a};color:${T.on};font:700 11px/1.2 var(--ce-font);cursor:default}
-  #ce-edit .ce-badge.ce-done{background:#15803D;color:#fff}
+  /* the save status sits above the bar, one look per stage: saving, waiting, applying, waiting to go live, going live, live */
+  #ce-edit .ce-badge{position:absolute;bottom:calc(100% + 10px);left:0;right:0;margin:0 auto;width:max-content;display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background-color:${T.a};color:${T.on};font:700 13px/1.2 var(--ce-font);white-space:nowrap;box-shadow:0 6px 18px -6px #0009;cursor:default}
+  #ce-edit .ce-badge::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;background:currentColor;box-sizing:border-box}
+  #ce-edit .ce-badge.ce-wait::before{animation:ce-pulse 1.2s ease-in-out infinite}
+  #ce-edit .ce-badge.ce-notlive{background-color:${T.s};color:${T.fg};box-shadow:0 0 0 1.5px ${T.a} inset,0 6px 18px -6px #0009}
+  #ce-edit .ce-badge.ce-notlive::before{background:none;border:2px solid currentColor}
+  #ce-edit .ce-badge.ce-saving::before,#ce-edit .ce-badge.ce-applying::before,#ce-edit .ce-badge.ce-publishing::before{background:none;border:2px solid currentColor;border-right-color:transparent;animation:ce-spin .7s linear infinite}
+  #ce-edit .ce-badge.ce-applying,#ce-edit .ce-badge.ce-publishing{background-image:linear-gradient(110deg,transparent 30%,#ffffff70 50%,transparent 70%);background-size:220% 100%;animation:ce-shimmer 1.3s linear infinite}
+  #ce-edit .ce-badge.ce-done::before{content:"\\2713";width:auto;height:auto;border-radius:0;background:none;font-size:14px;animation:ce-pop .35s ease-out}
+  @keyframes ce-pulse{50%{opacity:.25;transform:scale(.7)}}
+  @keyframes ce-spin{to{transform:rotate(1turn)}}
+  @keyframes ce-shimmer{from{background-position:120% 0}to{background-position:-120% 0}}
+  #ce-edit .ce-badge.ce-done{background-color:#15803D;color:#fff}
   #ce-edit .ce-badge[hidden]{display:none}
-  #ce-edit .ce-badge[data-tip]:hover::after{left:0;transform:none}
+  #ce-edit .ce-badge[data-tip]:hover::after{left:50%;transform:translateX(-50%)}
   #ce-edit [data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);padding:6px 9px;border-radius:8px;background:${T.s};color:${T.fg};font:500 12px/1.3 var(--ce-font);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none}
   #ce-edit button[data-tip]:nth-last-of-type(-n+3):hover::after{left:auto;right:0;transform:none}
   #ce-edit button[data-tip]:nth-of-type(-n+2):hover::after{left:0;transform:none}
@@ -188,7 +199,7 @@
   #ce-edit [data-tip]:hover::after{animation:ce-pop .14s ease-out}
   #ce-phone{animation:ce-fade .16s ease-out}
   #ce-phone .ce-frame{animation:ce-pop .18s ease-out}
-  @media (prefers-reduced-motion:reduce){#ce-note,#ce-style,#ce-edit .ce-badge,.ce-pin,#ce-edit [data-tip]:hover::after,#ce-phone,#ce-phone .ce-frame{animation:none!important}}`;
+  @media (prefers-reduced-motion:reduce){#ce-note,#ce-style,#ce-edit .ce-badge,#ce-edit .ce-badge::before,.ce-pin,#ce-edit [data-tip]:hover::after,#ce-phone,#ce-phone .ce-frame{animation:none!important}}`;
   document.head.append(css);
 
   // ---------- bottom bar: selection actions, then undo, pause, save ----------
@@ -224,7 +235,8 @@
     if (u.length) s.setItem(KEY, JSON.stringify({ url: location.href, viewport: `${innerWidth}x${innerHeight}`, phone: !!host, changes: u.map((c) => ({ ...clean(c), r: c.r })) }));
     else s.removeItem(KEY);
   });
-  const tick = () => { count.textContent = String(changes.length - sent); persist(); };
+  // Unsaved edits hide the save status: "All applied" would read as if they were applied too.
+  const tick = () => { count.textContent = String(changes.length - sent); persist(); if (changes.length > sent) badge.hidden = true; else if (badge.textContent) badge.hidden = false; };
   // A modal dialog makes the rest of the page inert, so the bar moves into it while it is open (in phone view it stays in the parent page).
   if (!host) new MutationObserver(() => { const l = layer(); if (bar.parentElement !== l) l.append(bar); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
   // Pressing a bar button must not take the focus away from the words being typed (the style panel's inputs still take focus).
@@ -233,18 +245,29 @@
   // ---------- saves waiting for the AI: badge, polled while any is waiting; applied changes lose their yellow tint ----------
   let polling = null;
   const serverState = async () => { try { return await (await fetch(SERVER + '/status')).json(); } catch { return null; } };
+  const setBadge = (stage, word, tip) => {
+    badge.hidden = stage !== 'saving' && changes.length > sent;
+    if (badge.textContent !== word) { badge.classList.remove('ce-anim'); void badge.offsetWidth; badge.classList.add('ce-anim'); }
+    badge.textContent = word;
+    ['saving', 'wait', 'applying', 'notlive', 'publishing', 'done'].forEach((k) => badge.classList.toggle('ce-' + k, k === stage));
+    badge.dataset.tip = tip;
+  };
   const poll = async () => {
     clearTimeout(polling);
     const st = await serverState();
     if (!st) return;
     if (st.applied != null) changes.slice(0, sent).forEach((c) => { if (c.at && c.at <= st.applied) c.el?.classList.remove(...TINTS); });
-    badge.hidden = false;
-    const word = st.pending ? `${st.pending} waiting` : 'All applied';
-    if (badge.textContent !== word) { badge.classList.remove('ce-anim'); void badge.offsetWidth; badge.classList.add('ce-anim'); }
-    badge.textContent = word;
-    badge.classList.toggle('ce-done', !st.pending);
-    badge.dataset.tip = st.pending ? `Your AI has not applied ${st.pending} of your saves yet` : 'Your AI has applied all your saves';
-    if (st.pending) polling = setTimeout(poll, 3000);
+    // Stages: waiting, applying, applied but not live, going live, live ("applied" alone didn't say whether it was live).
+    const stage = st.pending ? (st.applying ? 'applying' : 'wait') : st.publishing ? 'publishing' : st.unpublished ? 'notlive' : 'done';
+    const words = {
+      wait: [`${st.pending} waiting for your AI`, `Your AI hasn't started on ${st.pending > 1 ? `${st.pending} of your saves` : 'your save'} yet`],
+      applying: ['Your AI is applying...', 'Your AI is putting your save on the page'],
+      notlive: ['All applied, waiting to go live', 'Your saves are on this preview only. Press Publish to put them on the live site'],
+      publishing: ['Going live...', 'Your AI is deploying and checking the live page'],
+      done: ['Live on the site', 'Everything you saved is on the live site'],
+    }[stage];
+    setBadge(stage, ...words);
+    if (st.pending || st.publishing) polling = setTimeout(poll, 3000);
   };
   if (ss((s) => s.getItem('ce-saved'))) poll();
 
@@ -401,7 +424,7 @@
     pin.style.position = fixed ? 'fixed' : 'absolute';
     pin.style.left = x + 'px';
     pin.style.top = y + 'px';
-    c.pin = pin; pin.textContent = String(changes.indexOf(c) + 1);
+    c.pin = pin; pin.textContent = String(changes.indexOf(c) + 1); pin.title = c.note ?? '';
     pin.addEventListener('click', (ev) => {
       ev.preventDefault(); ev.stopPropagation();
       const r = pin.getBoundingClientRect(), was = changes.indexOf(c) < sent;
@@ -411,6 +434,7 @@
       }, { value: c.note, onDelete: () => {
         if (was) changes.push({ ...c, pin: undefined, note: `(delete comment ${pin.textContent}, ignore it)` });
         else changes.splice(changes.indexOf(c), 1);
+        if (!was && c.type === 'mark') { strokes.splice(strokes.indexOf(c.stroke), 1); draw(); }
         pin.remove(); tick();
       } });
     });
@@ -480,12 +504,19 @@
     return near && !(x > r.left + 3 && x < r.right - 3 && y > r.top + 3 && y < r.bottom - 3);
   };
   document.addEventListener('pointerdown', (e) => {
-    if (paused || drawing || tool || e.button !== 0 || e.shiftKey || e.ctrlKey || e.metaKey || !target || e.target.closest?.(UI)) return;
-    const edge = onEdge(target, e.clientX, e.clientY);
-    if (target === editing ? !edge : !(target.contains(hit(e.target, e.clientX, e.clientY)) || edge)) return;
-    press = { x: e.clientX, y: e.clientY };
-    // On the grip of a block being typed, the press must not move the caret or start selecting words.
-    if (target === editing) e.preventDefault();
+    if (paused || drawing || tool || e.button !== 0 || e.shiftKey || e.ctrlKey || e.metaKey || e.target.closest?.(UI) || ours(e.target)) return;
+    // Any block moves in one press and drag; a press without a drag is still a click.
+    // While typing, only the block's outline grabs, so a drag inside the words still selects them.
+    if (editing) {
+      if (target !== editing || !onEdge(editing, e.clientX, e.clientY)) return;
+      press = { x: e.clientX, y: e.clientY, el: editing };
+      e.preventDefault(); // on the grip, the press must not move the caret or start selecting words
+      return;
+    }
+    const t = hit(e.target, e.clientX, e.clientY);
+    if (!t || t === document.body || t === document.documentElement) return;
+    const el = target && (target.contains(t) || onEdge(target, e.clientX, e.clientY)) ? target : (typable(t) ?? t);
+    press = { x: e.clientX, y: e.clientY, el };
   }, true);
   // The grab cursor shows where a press picks the selection up.
   document.addEventListener('mousemove', (e) => {
@@ -497,17 +528,17 @@
     if (!dragging) {
       if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < 6) return;
       // An only child moves with its nearest wrapper that has siblings (a lone paragraph in a quote moves the quote).
-      let el = target;
+      let el = press.el;
       while (el.parentElement && el.parentElement !== document.body && kids(el.parentElement).length < 2) el = el.parentElement;
       if (!el.parentElement || el.parentElement === document.documentElement || kids(el.parentElement).length < 2) { press = null; return; }
       editing?.blur();
       if (el !== target) aim(el);
-      getSelection()?.removeAllRanges();
       dragging = { el };
       document.documentElement.classList.add('ce-dragging');
       layer().append(dropLine);
     }
     e.preventDefault();
+    getSelection()?.removeAllRanges(); // a drag that began on words would otherwise keep selecting them
     // Near the top or bottom of the window the page scrolls, so a block can travel past the screen.
     const dy = e.clientY > innerHeight - 48 ? 24 : e.clientY < 48 ? -24 : 0;
     if (dy) scrollBy({ top: dy, behavior: 'instant' }); // instant: a smooth-scrolling site would stall on repeated calls
@@ -613,7 +644,12 @@
     c.stroke = s;
     c.r = { pts: s.pts, shape: s.shape };
     changes.push(c); tick();
-    note(e.clientX, e.clientY, 'Your comment (optional)', (t) => { c.note = t; tick(); });
+    note(e.clientX, e.clientY, 'Your comment (optional)', (t) => {
+      c.note = t; tick();
+      const [px, py] = s.pts[s.pts.length - 1];
+      addPin(c, px, py, false);
+      say(`Comment ${changes.indexOf(c) + 1} added to your drawing.`);
+    });
   }, true);
 
   // ---------- undo, pause, save ----------
@@ -627,7 +663,7 @@
     if (c.type === 'style') { if (c.prev) c.el.style.setProperty(c.prop, c.prev); else c.el.style.removeProperty(c.prop); if (target === c.el && !panel.hidden) styles(c.el); }
     if (c.type === 'move' || c.type === 'style') c.el.classList.toggle('ce-tweaked', changes.some((x) => x.el === c.el && (x.type === 'style' || x.type === 'move')));
     if (c.type === 'comment') c.pin?.remove();
-    if (c.type === 'mark') { strokes.splice(strokes.indexOf(c.stroke), 1); draw(); }
+    if (c.type === 'mark') { strokes.splice(strokes.indexOf(c.stroke), 1); draw(); c.pin?.remove(); }
     sent = Math.min(sent, changes.length);
     tick();
   };
@@ -681,6 +717,8 @@
       const r = await fetch(SERVER + '/publish', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: location.href }) });
       if (!(await r.json()).ok) throw new Error('refused');
       say('Publish asked. Your AI deploys it and checks the live page.');
+      ss((s) => s.setItem('ce-saved', '1')); poll();
+      ss((s) => s.setItem('ce-saved', '1')); poll();
     } catch (err) { say(`Publish not sent: ${err.message}.`); }
   };
   const save = async () => {
@@ -688,6 +726,7 @@
     if (changes.length <= sent) return say('Nothing new to save.');
     const doc = { url: location.href, savedAt: new Date().toISOString(), viewport: `${innerWidth}x${innerHeight}`, ...(host ? { phone: true } : {}), changes: payload() };
     say('Saving...');
+    setBadge('saving', 'Saving...', 'Sending your save to your AI');
     try {
       const j = await post(doc);
       changes.slice(sent).forEach((c) => {
@@ -766,6 +805,13 @@
     layer().append(ov);
     bar.style.display = 'none';
   };
+  addEventListener('keydown', (e) => {
+    if (!['Delete', 'Backspace'].includes(e.key) || paused || !target || editing || document.getElementById('ce-note') || e.target.closest?.('input,textarea,select,[contenteditable]')) return;
+    e.preventDefault();
+    act('remove');
+    aim(null);
+    say('Removed. The undo button brings it back.');
+  });
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || document.getElementById('ce-note') || document.getElementById('ce-phone')) return;
     // Esc order: stop typing, clear the selection, turn off a tool, pause.
